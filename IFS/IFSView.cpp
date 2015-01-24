@@ -21,14 +21,23 @@ BEGIN_MESSAGE_MAP(CIFSView, CView)
 	ON_COMMAND(ID_FILE_PRINT, &CView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_DIRECT, &CView::OnFilePrint)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CView::OnFilePrintPreview)
+	ON_WM_TIMER()
+	ON_WM_CREATE()
 END_MESSAGE_MAP()
 
 // CIFSView construction/destruction
 
+// Pteridophyte
+const double M[4][2][3] = {
+		  0   ,     0, 0,   0   , 0.16, 0   ,
+		  0.2 , -0.26, 0,   0.23, 0.22, 1.6 ,
+		 -0.15,  0.28, 0,   0.26, 0.24, 0.44,
+		  0.85,  0.04, 0,  -0.04, 0.85, 1.6 };
+
 CIFSView::CIFSView()
 {
-	// TODO: add construction code here
-
+	srand((unsigned)time(NULL));
+	count = 0;
 }
 
 CIFSView::~CIFSView()
@@ -70,22 +79,10 @@ void CIFSView::OnDraw(CDC* pDC)
 void CIFSView::IFS(P& p)
 {
 	int r = rand() % 100;
-	if (r < 1) {
-		p.x = 0;
-		p.y *= 0.16;
-	} else if (r < 8) {
-		double x = p.x;
-		p.x = 0.2 * x - 0.26 * p.y;
-		p.y = 0.23 * x + 0.22 * p.y + 1.6;
-	} else if (r < 15) {
-		double x = p.x;
-		p.x = -0.15 * x + 0.28 * p.y;
-		p.y = 0.26 * x + 0.24 * p.y + 0.44;
-	} else {
-		double x = p.x;
-		p.x = 0.85 * x + 0.04 * p.y;
-		p.y = -0.04 * x + 0.85 * p.y + 1.6;
-	}
+	int t = (r < 1) ? 0 : (r < 8) ? 1 : (r < 15) ? 2 : 3;
+	double x = p.x;
+	p.x = m[t][0][0] * x + m[t][0][1] * p.y + m[t][0][2];
+	p.y = m[t][1][0] * x + m[t][1][1] * p.y + m[t][1][2];
 }
 
 
@@ -130,3 +127,42 @@ CIFSDoc* CIFSView::GetDocument() const // non-debug version is inline
 
 
 // CIFSView message handlers
+void CIFSView::OnTimer(UINT_PTR nIDEvent)
+{
+	// TODO: Add your message handler code here and/or call default
+	if (!count--) {
+		count = 30;
+
+		memcpy(&m[0][0][0], &M[0][0][0], 24 * sizeof(double));
+		for (int t = 0; t < 4; t++) {
+			for (int r = 0; r < 2; r++) {
+				for (int c = 0; c < 3; c++) {
+					v[t][r][c] = (((double)rand() / RAND_MAX) - 0.5) / 50;
+				}
+			}
+		}
+	}
+
+	for (int t = 0; t < 4; t++) {
+		for (int r = 0; r < 2; r++) {
+			for (int c = 0; c < 3; c++) {
+				m[t][r][c] += v[t][r][c];
+			}
+		}
+	}
+
+	Invalidate();
+
+	CView::OnTimer(nIDEvent);
+}
+
+int CIFSView::OnCreate(LPCREATESTRUCT lpCreateStruct)
+{
+	if (CView::OnCreate(lpCreateStruct) == -1)
+		return -1;
+
+	// TODO:  Add your specialized creation code here
+	SetTimer(1, 1, NULL);
+
+	return 0;
+}

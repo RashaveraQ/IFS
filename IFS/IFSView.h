@@ -46,7 +46,13 @@ private:
 		double x;
 		double y;
 	};
-	void IFS(P& p); 
+	double m[4][2][3];
+	double v[4][2][3];
+	long count;
+	void IFS(P& p);
+public:
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 };
 
 #ifndef _DEBUG  // debug version in IFSView.cpp
