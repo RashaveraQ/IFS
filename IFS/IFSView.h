@@ -47,7 +47,9 @@ private:
 		double y;
 	};
 	double m[4][2][3];
-	double v[4][2][3];
+	double A[4][2][3];
+	double B[4][2][3];
+	double C[4][2][3];
 	long count;
 	HDC		hMemDC;
 	void IFS(P& p);

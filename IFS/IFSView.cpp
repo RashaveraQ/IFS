@@ -39,6 +39,14 @@ CIFSView::CIFSView()
 {
 	srand((unsigned)time(NULL));
 	count = 0;
+
+	for (int t = 0; t < 4; t++) {
+		for (int r = 0; r < 2; r++) {
+			for (int c = 0; c < 3; c++) {
+					A[t][r][c] = B[t][r][c] = C[t][r][c] = 0;
+			}
+		}
+	}
 }
 
 CIFSView::~CIFSView()
@@ -78,27 +86,30 @@ void CIFSView::OnSize(UINT nType, int cx, int cy)
 	}
 }
 
+static double th = 0;
+
 // CIFSView message handlers
 void CIFSView::OnTimer(UINT_PTR nIDEvent)
 {
 	// TODO: Add your message handler code here and/or call default
 	if (!count--) {
-		count = 30;
+		count = 100;
 
-		memcpy(&m[0][0][0], &M[0][0][0], 24 * sizeof(double));
-		for (int t = 0; t < 4; t++) {
-			for (int r = 0; r < 2; r++) {
-				for (int c = 0; c < 3; c++) {
-					v[t][r][c] = (((double)rand() / RAND_MAX) - 0.5) / 100;
-				}
-			}
-		}
+		int t = rand() % 4;
+		int r = rand() % 2;
+		int c = rand() % 3;
+
+		A[t][r][c] = (((double)rand() / RAND_MAX) - 0.5);
+		B[t][r][c] = (((double)rand() / RAND_MAX) - 0.5);
+		C[t][r][c] = (((double)rand() / RAND_MAX) - 0.5);
 	}
+
+	th += 0.1;
 
 	for (int t = 0; t < 4; t++) {
 		for (int r = 0; r < 2; r++) {
 			for (int c = 0; c < 3; c++) {
-				m[t][r][c] += v[t][r][c];
+				m[t][r][c] = M[t][r][c] + A[t][r][c] * sin(B[t][r][c] * th + C[t][r][c]);
 			}
 		}
 	}
@@ -122,15 +133,16 @@ void CIFSView::OnDraw(CDC* pDC)
 	int w = rect.Width();
 	int h = rect.Height();
 
-	SelectObject(hMemDC, GetStockObject(WHITE_BRUSH));
+	SelectObject(hMemDC, GetStockObject(BLACK_BRUSH));
 	Rectangle(hMemDC, 0, 0, w, h);
 
+	COLORREF color = RGB(255,255,255);
 	// TODO: add draw code for native data here
-	for (int j = 0; j < 1000; j++) {
+	for (int j = 0; j < 500; j++) {
 		P p = {0,0};
 		for (int i = 0; i < 40; i++) {
 			IFS(p);
-			SetPixel(hMemDC, w / 2 + 50 * p.x, h - 50 * p.y, 0);
+			SetPixel(hMemDC, w / 2 + 50 * p.x, 3 * h / 4 - 50 * p.y, color);
 		}
 	}
 
