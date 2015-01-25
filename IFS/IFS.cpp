@@ -105,7 +105,7 @@ BOOL CIFSApp::InitInstance()
 	if (!ProcessShellCommand(cmdInfo))
 		return FALSE;
 	// The main window has been initialized, so show and update it
-	pMainFrame->ShowWindow(m_nCmdShow);
+	pMainFrame->ShowWindow(SW_SHOWMAXIMIZED);
 	pMainFrame->UpdateWindow();
 
 	return TRUE;
