@@ -23,6 +23,7 @@ BEGIN_MESSAGE_MAP(CIFSView, CView)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CView::OnFilePrintPreview)
 	ON_WM_TIMER()
 	ON_WM_CREATE()
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 // CIFSView construction/destruction
@@ -52,6 +53,61 @@ BOOL CIFSView::PreCreateWindow(CREATESTRUCT& cs)
 	return CView::PreCreateWindow(cs);
 }
 
+int CIFSView::OnCreate(LPCREATESTRUCT lpCreateStruct)
+{
+	if (CView::OnCreate(lpCreateStruct) == -1)
+		return -1;
+	
+	// TODO:  Add your specialized creation code here
+	return 0;
+}
+
+void CIFSView::OnSize(UINT nType, int cx, int cy)
+{
+	CView::OnSize(nType, cx, cy);
+
+	// TODO: Add your message handler code here
+	if (cx > 0 && cy > 0) {
+		HDC	hdc = ::GetDC(m_hWnd);
+		HBITMAP hBitmap = CreateCompatibleBitmap(hdc, cx, cy);
+		hMemDC = CreateCompatibleDC(hdc);
+		::ReleaseDC(m_hWnd, hdc);
+		SelectObject(hMemDC, hBitmap);
+		DeleteObject(hBitmap);
+		SetTimer(1, 1, NULL);
+	}
+}
+
+// CIFSView message handlers
+void CIFSView::OnTimer(UINT_PTR nIDEvent)
+{
+	// TODO: Add your message handler code here and/or call default
+	if (!count--) {
+		count = 30;
+
+		memcpy(&m[0][0][0], &M[0][0][0], 24 * sizeof(double));
+		for (int t = 0; t < 4; t++) {
+			for (int r = 0; r < 2; r++) {
+				for (int c = 0; c < 3; c++) {
+					v[t][r][c] = (((double)rand() / RAND_MAX) - 0.5) / 100;
+				}
+			}
+		}
+	}
+
+	for (int t = 0; t < 4; t++) {
+		for (int r = 0; r < 2; r++) {
+			for (int c = 0; c < 3; c++) {
+				m[t][r][c] += v[t][r][c];
+			}
+		}
+	}
+
+	Invalidate(FALSE);
+
+	CView::OnTimer(nIDEvent);
+}
+
 // CIFSView drawing
 
 void CIFSView::OnDraw(CDC* pDC)
@@ -66,14 +122,19 @@ void CIFSView::OnDraw(CDC* pDC)
 	int w = rect.Width();
 	int h = rect.Height();
 
+	SelectObject(hMemDC, GetStockObject(WHITE_BRUSH));
+	Rectangle(hMemDC, 0, 0, w, h);
+
 	// TODO: add draw code for native data here
 	for (int j = 0; j < 1000; j++) {
 		P p = {0,0};
 		for (int i = 0; i < 40; i++) {
 			IFS(p);
-			pDC->SetPixel(w / 2 + 50 * p.x, h - 50 * p.y, 0);
+			SetPixel(hMemDC, w / 2 + 50 * p.x, h - 50 * p.y, 0);
 		}
 	}
+
+	BitBlt(pDC->m_hDC,0,0,w,h,hMemDC,0,0,SRCCOPY);
 }
 
 void CIFSView::IFS(P& p)
@@ -126,43 +187,4 @@ CIFSDoc* CIFSView::GetDocument() const // non-debug version is inline
 #endif //_DEBUG
 
 
-// CIFSView message handlers
-void CIFSView::OnTimer(UINT_PTR nIDEvent)
-{
-	// TODO: Add your message handler code here and/or call default
-	if (!count--) {
-		count = 30;
 
-		memcpy(&m[0][0][0], &M[0][0][0], 24 * sizeof(double));
-		for (int t = 0; t < 4; t++) {
-			for (int r = 0; r < 2; r++) {
-				for (int c = 0; c < 3; c++) {
-					v[t][r][c] = (((double)rand() / RAND_MAX) - 0.5) / 50;
-				}
-			}
-		}
-	}
-
-	for (int t = 0; t < 4; t++) {
-		for (int r = 0; r < 2; r++) {
-			for (int c = 0; c < 3; c++) {
-				m[t][r][c] += v[t][r][c];
-			}
-		}
-	}
-
-	Invalidate();
-
-	CView::OnTimer(nIDEvent);
-}
-
-int CIFSView::OnCreate(LPCREATESTRUCT lpCreateStruct)
-{
-	if (CView::OnCreate(lpCreateStruct) == -1)
-		return -1;
-
-	// TODO:  Add your specialized creation code here
-	SetTimer(1, 1, NULL);
-
-	return 0;
-}
